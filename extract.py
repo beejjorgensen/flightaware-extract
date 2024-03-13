@@ -18,6 +18,14 @@ td_map = [
     'reporting_facility'
 ]
 
+def number(data):
+    result = ''
+    for c in data:
+        if c.isdigit() or c == '-' or c == '.':
+            result += c
+
+    return result
+
 class FAHTMLParser(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -82,6 +90,8 @@ class FAHTMLParser(HTMLParser):
                     data = data[:-1]
                 case 'reporting_facility':
                     data = data.strip()
+                case 'feet':
+                    data = number(data)
 
             self.point[field_name] = data
 
@@ -100,8 +110,44 @@ def convert_to_points(html):
 
     return parser.get_points()
 
-def export_kml(points):
-    pass
+def export_kml(points, name="Track", line_color="ffff0000", fill_color="7fff0000", width=4, extrude=True, tessellate=True):
+
+    extrude_tag = "<extrude>1</extrude>" if extrude else ""
+    tessellate_tag = "<tessellate>1</tessellate>" if tessellate else ""
+
+    print(f"""<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Paths</name>
+    <description>Flightaware track</description>
+    <Style id="trackstyle">
+      <LineStyle>
+        <color>{line_color}</color>
+        <width>{width}</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>{fill_color}</color>
+      </PolyStyle>
+    </Style>
+    <Placemark>
+      <name>{name}</name>
+      <description></description>
+      <styleUrl>#trackstyle</styleUrl>
+      <LineString>
+        {extrude_tag}
+        {tessellate_tag}
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>""")
+
+    for p in points:
+        print(f"          {p['lon']},{p['lat']},{p['feet']}")
+
+    print("""       </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>
+""")
 
 def main(argv):
     if len(argv) != 2:
@@ -112,7 +158,6 @@ def main(argv):
 
     html = load_file(filename)
     points = convert_to_points(html)
-    print(points)
     export_kml(points)
 
 if __name__ == "__main__":
