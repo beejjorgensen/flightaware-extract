@@ -64,7 +64,6 @@ class FAHTMLParser(HTMLParser):
                 if self.in_row:
                     self.in_row = False
                     self.points.append(self.point)
-                    print(self.point)
 
             case 'td':
                 self.in_td = False
@@ -87,7 +86,7 @@ class FAHTMLParser(HTMLParser):
             self.point[field_name] = data
 
     def get_points(self):
-        pass
+        return self.points
 
 def load_file(filename):
     with open(filename) as fp:
@@ -101,6 +100,9 @@ def convert_to_points(html):
 
     return parser.get_points()
 
+def export_kml(points):
+    pass
+
 def main(argv):
     if len(argv) != 2:
         print(f"usage: {argv[0]} filename.html", file=sys.stderr)
@@ -110,7 +112,8 @@ def main(argv):
 
     html = load_file(filename)
     points = convert_to_points(html)
-    #export_kml(points)
+    print(points)
+    export_kml(points)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
